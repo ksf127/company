@@ -35,7 +35,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus
+        include: health,info,prometheus,metrics
   endpoint:
     health:
       # always 会把 DB/Redis 地址、磁盘路径暴露给任何能访问 actuator 的人
@@ -45,9 +45,15 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
+  otlp:
+    tracing:
+      # Jaeger all-in-one 的 OTLP HTTP 接收端，日志/追踪链路统一从这里进入
+      endpoint: ${OTLP_ENDPOINT:http://localhost:4318/v1/traces}
   tracing:
     sampling:
       probability: ${TRACE_SAMPLE_RATE:0.1}
+    propagation:
+      type: w3c
 
 logging:
   pattern:

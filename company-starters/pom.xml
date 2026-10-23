@@ -18,5 +18,7 @@
     <modules>
         <module>company-redis-starter</module>
         <module>company-mybatis-starter</module>
+        <module>company-mq-starter</module>
+        <module>company-job-starter</module>
     </modules>
 </project>

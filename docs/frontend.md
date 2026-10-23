@@ -108,7 +108,7 @@ eventBus.emit('shell:navigate', '/trade/order/123');
 | `/api/users/*` | `http://localhost:8084` |
 | `/api/demo-01/*` … `/api/demo-10/*` | `http://localhost:8091` … `8100` |
 
-代理会去掉 `/api` 前缀，因此 `/api/system/user/page` 实际请求 system-service 的 `/system/user/page`。生产环境由网关承担同样规则。
+代理会去掉 `/api` 前缀，因此 `/api/system/user/page` 实际请求 system-service 的 `/system/user/page`。生产环境由网关承担同样规则（`gateway-service:8080`，见 `deploy/nacos-config/services/gateway-service.yaml`），前端代码不感知差异。开发期直连各服务端口是刻意的：不依赖网关即可单独调试某个微前端。
 
 ## 6. 新增一个微前端
 
@@ -182,3 +182,14 @@ dist/
 6. 禁止各应用自定义 `shared`，统一由 `build-config` 提供。
 
 `npm run typecheck` 会用本地 TypeScript 对 shell 与所有应用逐一执行 `tsc --noEmit`。
+
+## 9. 代码检查
+
+`npm run lint` 执行 ESLint 9（flat config，`eslint.config.js`）：
+
+- `typescript-eslint` 推荐规则，覆盖 shell、apps、packages 与 tools；
+- `eslint-plugin-react-hooks` 检查 Hooks 依赖；
+- `eslint-plugin-react-refresh` 保证远端模块只导出组件；
+- 忽略 `node_modules`、`dist`、`coverage`、`registry`。
+
+未使用变量以下划线前缀豁免（`_unused`），`any` 与 `exhaustive-deps` 记为 warning，其余问题按 error 处理。CI 中 `npm ci → check → lint → typecheck → build` 依次执行，任一失败即阻断合并。

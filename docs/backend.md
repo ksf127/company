@@ -8,9 +8,20 @@
 | `company-parent` | 编译器、Surefire、Enforcer、Lombok 注解处理器 | 所有服务 POM 的 parent，不写业务依赖 |
 | `company-common/common-core` | `ApiResult`、`ErrorCode`、`BizException` 等内核 | 零框架依赖，任何模块可引用 |
 | `company-common/common-web` | 全局异常处理、Web 公共配置 | 只被 `company-services` 继承 |
-| `company-starters/*` | 中间件接入的唯一入口 | 业务服务禁止直接引入 Redis / MySQL / MyBatis-Plus 客户端 |
+| `company-starters/*` | 中间件接入的唯一入口 | 业务服务禁止直接引入 Redis / MySQL / MyBatis-Plus / RabbitMQ 客户端 |
 | `company-api/*` | 服务间契约：DTO + Feign 接口 | 只放契约，不放实现 |
 | `company-services/*` | 可运行服务 | 新增服务只能加在这里 |
+
+Starter 清单：
+
+| Starter | 提供的能力 | 自动配置类 |
+| --- | --- | --- |
+| `company-redis-starter` | `RedisTemplate`、序列化与连接池默认值 | `CompanyRedisAutoConfiguration` |
+| `company-mybatis-starter` | MyBatis-Plus、分页插件、数据源、Flyway（`db/migration`） | `CompanyMybatisAutoConfiguration` |
+| `company-mq-starter` | `RabbitTemplate`（JSON 序列化、publisher confirms / returns）、监听容器（AUTO ack、3 次退避重试后丢弃，不重回队列） | `CompanyMqAutoConfiguration` |
+| `company-job-starter` | `ThreadPoolTaskScheduler` + `@EnableScheduling`，线程数 `company.job.pool-size`（默认 4） | `CompanyJobAutoConfiguration` |
+
+Starter 通过 `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` 注册，业务服务只加依赖即可，不需要 `@Import`。
 
 根 POM 只做聚合：不写 `dependencyManagement`、不写 `pluginManagement`。版本问题去 BOM，构建问题去 parent。
 
@@ -57,7 +68,7 @@ com.baomidou:mybatis-plus-spring-boot3-starter
 | 层级 | dataId | 内容 | 变更影响 |
 | --- | --- | --- | --- |
 | L0 | `application.yaml` | Jackson、优雅停机、Tomcat 线程、Actuator、日志格式、Feign 默认超时 | 全部服务 |
-| L1 | `mysql.yaml`、`redis.yaml` | 连接池参数、MyBatis-Plus 通用行为、集群地址 | 使用该中间件的全部服务 |
+| L1 | `mysql.yaml`、`redis.yaml`、`rabbitmq.yaml` | 连接池参数、MyBatis-Plus 通用行为、Flyway、MQ 确认与重试、集群地址 | 使用该中间件的全部服务 |
 | L2 | `<service-name>.yaml` | 端口、数据源 URL/账号、服务专属业务参数、Feign 单服务超时 | 仅该服务 |
 | L3 | 环境变量 / K8s Secret | 数据库密码、JWT 密钥、各环境地址 | 仅该环境 |
 
@@ -85,7 +96,46 @@ node deploy/nacos-config/publish.mjs
 NACOS_NS=test node deploy/nacos-config/publish.mjs
 ```
 
-## 4. 统一响应与异常
+## 4. 数据库版本（Flyway）
+
+Flyway 随 `company-mybatis-starter` 下发，无需在业务服务单独声明依赖：
+
+```text
+company-services/<name>-service/src/main/resources/
+└── db/migration/
+    ├── V1__init.sql          # 建表 + 种子数据
+    └── V2__add_xxx.sql       # 后续增量，只增不改
+```
+
+- `deploy/nacos-config/base/mysql.yaml` 统一配置：`locations=classpath:db/migration`、`baseline-on-migrate=true`、`baseline-version=0`、`validate-on-migrate=true`。
+- `baseline-on-migrate` 让已有库（由 `deploy/db/init/*.sql` 初始化）平滑接管，不会重复执行历史脚本。
+- 脚本必须幂等写法（`CREATE TABLE IF NOT EXISTS`），不写 `CREATE DATABASE` / `USE`，库由服务自己的数据源 URL 决定。
+- 变更只新增版本文件，禁止修改已发布的 `V*.sql`，否则 `validate-on-migrate` 会拒绝启动。
+- 单测不使用真实数据库：服务测试以 Mockito 替代 repository，`mvn test` 不需要 MySQL。
+
+## 5. 统一网关
+
+`gateway-service`（8080）是基于 Spring Cloud Gateway 的 WebFlux 应用，是前端与外部系统访问后端的唯一入口。
+
+- **鉴权**：`JwtAuthGlobalFilter` 校验 `Authorization: Bearer <token>`，密钥读取 `company.auth.jwt.secret`，必须与 auth-service 一致。
+- **白名单**：`/api/auth/login`、`/actuator/**` 与 `OPTIONS` 预检请求直接放行。
+- **失败响应**：缺失或非法 token 返回 401，body 为 `{"code":401,"message":"未认证或令牌已失效","data":null}`。
+- **身份透传**：校验通过后向下游注入 `X-User-Id`、`X-Username`，下游服务无需重复解析 JWT。
+- **限流**：`IpRateLimitGlobalFilter` 按 IP 做内存固定窗口限流，默认 200 req/s（`company.gateway.rate-limit-per-second`），超出返回 429。
+
+路由写在 L2 配置 `deploy/nacos-config/services/gateway-service.yaml`，路径规则与各 Controller 的实际路径对齐：
+
+| 外部路径 | 下游 | 转发方式 |
+| --- | --- | --- |
+| `/api/auth/**` | `lb://auth-service` | `StripPrefix=1` |
+| `/api/system/**` | `lb://system-service` | `StripPrefix=1` |
+| `/api/user/**`、`/api/users/**` | `lb://user-service` | `StripPrefix=1` / `RewritePath` |
+| `/api/order/**`、`/api/orders/**` | `lb://order-service` | `StripPrefix=1` / `RewritePath` |
+| `/api/demo-01/**` … `/api/demo-10/**` | `lb://demo01-service` … | `StripPrefix=1` |
+
+修改网关路由后必须重新发布 Nacos 配置，并逐个核对下游 Controller 的 `@RequestMapping` 前缀。开发期前端仍由 shell 的 Vite 代理直连各服务端口，不经过网关。
+
+## 6. 统一响应与异常
 
 ```java
 public record ApiResult<T>(int code, String message, T data) {
@@ -98,25 +148,27 @@ public record ApiResult<T>(int code, String message, T data) {
 - 业务异常抛 `BizException(ErrorCode, message)`，由 `common-web` 的全局异常处理转换为 `ApiResult`。
 - 分页统一返回 `PageResult<T>(long total, List<T> rows)`。
 
-## 5. 新增一个服务
+## 7. 新增一个服务
 
 1. 在 `company-api/` 下新建 `<name>-api`（需要被别的服务调用时），并在 `company-api/pom.xml` 注册模块、在 `company-bom` 声明版本。
 2. 在 `company-services/` 下新建 `<name>-service`，parent 指向 `company-services/pom.xml`。
 3. 只允许通过 Starter 引入中间件依赖。
 4. 创建 `src/main/resources/application.yml`，按 L0 → L1 → L2 顺序 import Nacos 配置。
-5. 在 `deploy/nacos-config/services/<name>-service.yaml` 写端口与专属配置。
-6. 在 `deploy/k8s/values/<name>-service.yaml` 写镜像与副本数。
-7. 添加 `ArchitectureTest`（可复制现有服务的测试类）。
-8. 运行 `mvn -B test`，确认 Enforcer 与 ArchUnit 都通过。
+5. 在 `deploy/nacos-config/services/<name>-service.yaml` 写端口与专属配置；如对外暴露，追加一条网关路由。
+6. 需要数据库时在 `src/main/resources/db/migration/` 放 `V1__init.sql`，由 Flyway 建表。
+7. 在 `deploy/k8s/values/<name>-service.yaml` 写镜像与副本数。
+8. 添加 `ArchitectureTest`（可复制现有服务的测试类）。
+9. 运行 `mvn -B test`，确认 Enforcer 与 ArchUnit 都通过。
 
-## 6. 现有服务
+## 8. 现有服务
 
 | 服务 | 端口 | 数据库 | 说明 |
 | --- | --- | --- | --- |
+| `gateway-service` | 8080 | 无 | 统一入口：JWT 校验、身份透传、限流、路由（WebFlux） |
 | `auth-service` | 8081 | 无（无状态） | JWT 登录、用户信息、登录日志写入；通过 Feign 调 system-service |
-| `system-service` | 8082 | `system_db` | 若依基础模块 |
+| `system-service` | 8082 | `system_db`（Flyway 管理） | 若依基础模块；含示例定时任务 `SystemSummaryJob` |
 | `order-service` | 8083 | 示例库 | 交易域示例 |
-| `user-service` | 8084 | `user_db` | 身份域示例 |
+| `user-service` | 8084 | `user_db`（Flyway 管理） | 身份域示例 |
 | `demo01-service` … `demo10-service` | 8091 – 8100 | 无（内存） | 最小样板：单表 CRUD，用来对照扩展 100+ 服务时的目录与配置 |
 
 `auth-service` 不直接访问 `system_db`，只通过 `system-api` 的 `SystemClient` 调用 system-service 的 `/internal/system/**` 接口，保证数据库归属单一。

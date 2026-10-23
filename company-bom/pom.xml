@@ -63,6 +63,12 @@
                 <scope>test</scope>
             </dependency>
 
+            <!--
+              Flyway 由上面导入的 spring-boot-dependencies 统一管理版本，
+              这里不再重复声明（dependencyManagement 自身不允许省略 version）。
+              业务侧与 Starter 引 flyway-core / flyway-mysql 时同样不写 version。
+            -->
+
             <!-- JWT：auth-service 签发与校验令牌，版本只在这里维护 -->
             <dependency>
                 <groupId>io.jsonwebtoken</groupId>
@@ -101,6 +107,16 @@
             <dependency>
                 <groupId>com.company</groupId>
                 <artifactId>company-mybatis-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.company</groupId>
+                <artifactId>company-mq-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.company</groupId>
+                <artifactId>company-job-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

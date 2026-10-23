@@ -1,0 +1,29 @@
+# Prometheus 抓取配置：服务默认在宿主机上直接运行（mvn spring-boot:run），
+# 因此统一通过 host.docker.internal 访问；若服务也在容器里，把目标改成容器名即可。
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: company-services
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:8081"]
+        labels:
+          application: auth-service
+      - targets: ["host.docker.internal:8082"]
+        labels:
+          application: system-service
+      - targets: ["host.docker.internal:8083"]
+        labels:
+          application: order-service
+      - targets: ["host.docker.internal:8084"]
+        labels:
+          application: user-service
+      - targets: ["host.docker.internal:8091"]
+        labels:
+          application: demo01-service

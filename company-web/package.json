@@ -16,17 +16,24 @@
     "dev:shell": "npm run dev -w @company/shell",
     "build": "node tools/build.mjs",
     "check": "node tools/check-architecture.mjs",
+    "lint": "eslint .",
     "typecheck": "node tools/typecheck.mjs",
     "create": "node tools/create-app.mjs",
     "affected": "node tools/affected.mjs"
   },
   "devDependencies": {
+    "@eslint/js": "^9.36.0",
     "@module-federation/vite": "1.23.5",
     "@types/node": "^22.20.5",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "5.2.0",
+    "eslint": "^9.36.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^15.15.0",
     "typescript": "5.9.3",
+    "typescript-eslint": "^8.44.0",
     "vite": "7.3.7"
   }
 }

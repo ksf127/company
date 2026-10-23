@@ -1,0 +1,124 @@
+# L2 gateway-service 专属配置：对外的唯一入口，端口 8080。
+# 路由规则与各 Controller 的实际路径严格对应：
+#   auth-service   /auth/**             -> /api/auth/**
+#   system-service /system/**           -> /api/system/**
+#   user-service   /internal/users/**   -> /api/user/**、/api/users/**
+#   order-service  /orders/**           -> /api/order/**、/api/orders/**
+#   demoXX         context-path=/demo-XX -> /api/demo-XX/**
+# Nacos: dataId=gateway-service.yaml, group=DEFAULT_GROUP
+server:
+  port: 8080
+
+spring:
+  cloud:
+    gateway:
+      httpclient:
+        connect-timeout: 2000
+        response-timeout: 10s
+      routes:
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - StripPrefix=1
+
+        - id: system-service
+          uri: lb://system-service
+          predicates:
+            - Path=/api/system/**
+          filters:
+            - StripPrefix=1
+
+        # 用户中心只提供内部接口，网关负责把外部路径改写为 /internal/users/**
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/user/**,/api/users/**
+          filters:
+            - RewritePath=/api/(?:user|users)/(?<segment>.*), /internal/users/$\{segment}
+
+        # 后端 Controller 的真实路径是 /orders（复数），两种前缀都兼容
+        - id: order-service
+          uri: lb://order-service
+          predicates:
+            - Path=/api/orders/**
+          filters:
+            - StripPrefix=1
+
+        - id: order-service-singular
+          uri: lb://order-service
+          predicates:
+            - Path=/api/order/**
+          filters:
+            - RewritePath=/api/order/(?<segment>.*), /orders/$\{segment}
+
+        - id: demo01-service
+          uri: lb://demo01-service
+          predicates:
+            - Path=/api/demo-01/**
+          filters:
+            - StripPrefix=1
+
+        - id: demo02-service
+          uri: lb://demo02-service
+          predicates:
+            - Path=/api/demo-02/**
+          filters:
+            - StripPrefix=1
+
+        - id: demo03-service
+          uri: lb://demo03-service
+          predicates:
+            - Path=/api/demo-03/**
+          filters:
+            - StripPrefix=1
+
+        - id: demo04-service
+          uri: lb://demo04-service
+          predicates:
+            - Path=/api/demo-04/**
+          filters:
+            - StripPrefix=1
+
+        - id: demo05-service
+          uri: lb://demo05-service
+          predicates:
+            - Path=/api/demo-05/**
+          filters:
+            - StripPrefix=1
+
+        - id: demo06-service
+          uri: lb://demo06-service
+          predicates:
+            - Path=/api/demo-06/**
+          filters:
+            - StripPrefix=1
+
+        - id: demo07-service
+          uri: lb://demo07-service
+          predicates:
+            - Path=/api/demo-07/**
+          filters:
+            - StripPrefix=1
+
+        - id: demo08-service
+          uri: lb://demo08-service
+          predicates:
+            - Path=/api/demo-08/**
+          filters:
+            - StripPrefix=1
+
+        - id: demo09-service
+          uri: lb://demo09-service
+          predicates:
+            - Path=/api/demo-09/**
+          filters:
+            - StripPrefix=1
+
+        - id: demo10-service
+          uri: lb://demo10-service
+          predicates:
+            - Path=/api/demo-10/**
+          filters:
+            - StripPrefix=1

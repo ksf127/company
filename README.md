@@ -6,6 +6,18 @@
 - 前端：npm workspaces + Module Federation 2.0，应用注册由运行时清单驱动，架构体检脚本卡住越界依赖。
 - 基础模块：内置若依（RuoYi）风格的用户 / 角色 / 菜单 / 部门 / 字典 / 参数 / 登录日志，可直接作为业务系统的底座。
 
+## 框架能力
+
+| 能力 | 落地方式 |
+| --- | --- |
+| CI/CD | `.github/workflows/ci.yml`：后端 `mvn -B -ntp verify`，前端 `npm ci → check → lint → typecheck → build` |
+| 数据库版本 | 每个库自带的 `db/migration/V1__init.sql`（Flyway，`baseline-on-migrate` 兼容初始化脚本） |
+| 消息队列 | `company-mq-starter`：Jackson JSON 序列化、publisher confirms、消费重试（最多 3 次后不重回队列） |
+| 定时任务 | `company-job-starter`：`ThreadPoolTaskScheduler` + `@EnableScheduling`，线程数 `company.job.pool-size` |
+| 可观测性 | Actuator + Prometheus + Grafana + Loki/Promtail + Jaeger（OTLP，W3C 传播） |
+| 统一网关 | `gateway-service`（8080）：JWT 校验、`X-User-Id` / `X-Username` 注入、每 IP 限流、按路径转发 |
+| 测试 | 服务单测（Mockito）+ ArchUnit 架构测试 + MQ 自动配置测试，全部不依赖 MySQL / Redis / Nacos / RabbitMQ |
+
 ---
 
 ## 架构分层（结构即规范）
@@ -22,7 +34,9 @@ company/                                # 顶层 Git 仓库
 ├── company-starters/                   # 【POM L2】中间件 Starter 集合（基础组维护）
 │   ├── company-redis-starter/          # Redis 封装
 │   │   └── AutoConfiguration + 默认配置
-│   └── company-mybatis-starter/        # DB 封装（唯一允许引入 MyBatis-Plus 的入口）
+│   ├── company-mybatis-starter/        # DB 封装（唯一允许引入 MyBatis-Plus 的入口，含 Flyway）
+│   ├── company-mq-starter/             # RabbitMQ 封装（JSON 序列化、publisher confirms、消费重试）
+│   └── company-job-starter/            # 定时任务调度器（ThreadPoolTaskScheduler）
 │
 ├── company-api/                        # 【契约层】Feign 接口 + DTO（业务线维护）
 │   ├── system-api/                     # 系统服务契约
@@ -68,8 +82,12 @@ company/                                # 顶层 Git 仓库
 | 后端框架 | Spring Boot 3.2.5、Spring Cloud 2023.0.1、Spring Cloud Alibaba 2023.0.1.0 |
 | 注册 / 配置中心 | Nacos 2.3.2（L0–L3 分层配置） |
 | 持久层 | MyBatis-Plus 3.5.6（仅允许出现在 repository 层）、MySQL 8.4 |
+| 数据库版本 | Flyway（随 `company-mybatis-starter` 下发，脚本在 `db/migration/`） |
 | 缓存 | Redis 7.4 |
-| 认证 | JWT（jjwt 0.12.5）+ BCrypt |
+| 消息队列 | RabbitMQ 3.13（`company-mq-starter`） |
+| 定时任务 | Spring `ThreadPoolTaskScheduler`（`company-job-starter`） |
+| 认证 / 网关 | JWT（jjwt 0.12.5）+ BCrypt；Spring Cloud Gateway（8080） |
+| 可观测性 | Micrometer + Prometheus + Grafana + Loki/Promtail + Jaeger（OTLP） |
 | 前端 | React 19、TypeScript 5.9、Vite 7、Module Federation 2.0 |
 | 部署 | Docker Compose（本地）、Helm Chart（K8s） |
 
@@ -85,12 +103,15 @@ company/
 │   ├── common-core/        # ApiResult、ErrorCode、BizException 等零依赖内核
 │   └── common-web/         # 全局异常处理、请求上下文等 Web 公共能力
 ├── company-starters/
-│   ├── company-mybatis-starter/    # 唯一允许引入 MyBatis-Plus 与驱动的入口
-│   └── company-redis-starter/      # 唯一允许引入 Redis 客户端的入口
+│   ├── company-mybatis-starter/    # 唯一允许引入 MyBatis-Plus、驱动与 Flyway 的入口
+│   ├── company-redis-starter/      # 唯一允许引入 Redis 客户端的入口
+│   ├── company-mq-starter/         # 唯一允许引入 RabbitMQ 客户端的入口
+│   └── company-job-starter/        # 统一调度线程池（@EnableScheduling）
 ├── company-api/            # 服务间契约（DTO + Feign 接口），按服务拆模块
 │   ├── system-api/
 │   └── user-api/
 ├── company-services/       # 所有可运行服务，新增服务只能加在这里
+│   ├── gateway-service/    # 统一入口：JWT 校验、限流、路由（8080）
 │   ├── auth-service/
 │   ├── system-service/     # 若依基础模块（用户/角色/菜单/部门/字典/参数/日志）
 │   ├── order-service/
@@ -99,8 +120,9 @@ company/
 ├── deploy/
 │   ├── db/init/            # MySQL 初始化脚本（user_db / system_db）
 │   ├── nacos-config/       # Config as Code：L0/L1/L2 配置 + 发布脚本
+│   ├── observability/      # Prometheus / Grafana / Loki / Promtail 配置
 │   ├── docker/             # 通用 Dockerfile
-│   ├── docker-compose.yml  # Nacos + MySQL + Redis
+│   ├── docker-compose.yml  # Nacos + MySQL + Redis + RabbitMQ + 可观测性栈
 │   └── k8s/                # Helm Chart 与各服务 values
 └── company-web/
     ├── shell/              # 主应用：布局、路由、登录、远程加载
@@ -130,7 +152,7 @@ cd deploy
 docker compose up -d
 ```
 
-包含：Nacos `8848`、MySQL `3306`（自动执行 `db/init/*.sql`）、Redis `6379`。
+包含：Nacos `8848`、MySQL `3306`（自动执行 `db/init/*.sql`）、Redis `6379`、RabbitMQ `5672/15672`，以及 Jaeger `16686`、Prometheus `9090`、Grafana `3000`、Loki `3100`。可观测性栈不启动也能跑业务服务，缺失时链路与指标只是不上报。
 
 ### 2. 发布 Nacos 配置
 
@@ -144,12 +166,15 @@ node deploy/nacos-config/publish.mjs --with-local # 本地联调时额外覆盖 
 ```bash
 mvn -B clean install -DskipTests
 
-# 分别在不同终端启动
+# 分别在不同终端启动（网关最后启动，也可先启动）
+mvn -B -pl company-services/gateway-service spring-boot:run
 mvn -B -pl company-services/system-service spring-boot:run
 mvn -B -pl company-services/auth-service spring-boot:run
 ```
 
-单测与架构守卫：
+网关监听 `8080`，登录、系统管理等请求统一走 `http://localhost:8080/api/**`；业务服务端口仅用于本地调试。
+
+单测与架构守卫（不依赖 MySQL / Redis / Nacos / RabbitMQ）：
 
 ```bash
 mvn -B test
@@ -174,6 +199,7 @@ npm run dev -- admin   # 只启动 shell 与系统管理
 
 | 类型 | 服务 / 应用 | 端口 |
 | --- | --- | --- |
+| 后端 | gateway-service（统一入口） | 8080 |
 | 后端 | auth-service | 8081 |
 | 后端 | system-service | 8082 |
 | 后端 | order-service | 8083 |
@@ -185,8 +211,21 @@ npm run dev -- admin   # 只启动 shell 与系统管理
 | 前端 | system/admin | 5003 |
 | 前端 | lab/demo01 … demo10 | 5011 – 5020 |
 | 基础设施 | Nacos / MySQL / Redis | 8848 / 3306 / 6379 |
+| 基础设施 | RabbitMQ（5672 / 管理台 15672） | 5672 |
+| 可观测性 | Prometheus / Grafana / Loki | 9090 / 3000 / 3100 |
+| 可观测性 | Jaeger UI / OTLP HTTP | 16686 / 4318 |
 
-开发期 shell 将 `/api/auth`、`/api/system`、`/api/orders`、`/api/users` 分别代理到 8081–8084，`/api/demo-01` … `/api/demo-10` 代理到 8091–8100；生产由网关承担同样的路由，前端代码不感知服务端口。
+开发期 shell 将 `/api/*` 直接代理到各服务端口（见 `company-web/shell/vite.config.ts`）；生产环境把同一个 `/api/*` 交给网关，由网关按 `deploy/nacos-config/services/gateway-service.yaml` 中的路由转发。前端代码始终只认 `/api` 前缀，不感知服务端口。
+
+网关路由（JWT 之外的白名单只有登录、`/actuator/**` 与 OPTIONS）：
+
+| 外部路径 | 下游 |
+| --- | --- |
+| `/api/auth/**` | `lb://auth-service` |
+| `/api/system/**` | `lb://system-service` |
+| `/api/user/**`、`/api/users/**` | `lb://user-service` |
+| `/api/order/**`、`/api/orders/**` | `lb://order-service` |
+| `/api/demo-01/**` … `/api/demo-10/**` | `lb://demo01-service` … `lb://demo10-service` |
 
 ### 10 个示例服务（lab）
 
@@ -220,6 +259,7 @@ npm run dev -- admin   # 只启动 shell 与系统管理
 | `npm run dev [-- <id>...]` | 启动 shell 与指定微前端 |
 | `npm run build [-- <id>...]` | 生产构建，产物在 `dist/` |
 | `npm run check` | 架构体检（目录/清单一致性、依赖方向、暴露面） |
+| `npm run lint` | ESLint 9 代码检查（含 React Hooks / Fast Refresh 规则） |
 | `npm run typecheck` | 所有工作区 TypeScript 检查 |
 | `npm run create -- --id=xx --name=xx --route=/xx --port=50xx` | 脚手架生成微前端并自动注册 |
 | `npm run affected` | 查看受改动影响的工作区 |

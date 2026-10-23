@@ -1,0 +1,28 @@
+# L1 消息队列公共参数：只有引入 company-mq-starter 的服务才会加载并生效。
+# 连接地址/账号属于环境专属信息，统一用环境变量占位，禁止把生产口令写进仓库。
+# Nacos: dataId=rabbitmq.yaml, group=DEFAULT_GROUP
+spring:
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    virtual-host: ${RABBITMQ_VHOST:/}
+    connection-timeout: 3000ms
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    template:
+      mandatory: true
+    listener:
+      simple:
+        acknowledge-mode: auto
+        prefetch: 20
+        concurrency: 2
+        max-concurrency: 8
+        default-requeue-rejected: false
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 1000ms
+          multiplier: 2
+          max-interval: 10000ms

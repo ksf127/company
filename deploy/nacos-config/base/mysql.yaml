@@ -10,6 +10,13 @@ spring:
       idle-timeout: 300000
       max-lifetime: 1200000
       validation-timeout: 3000
+  flyway:
+    # 迁移随应用启动执行；已有库首次接入时以版本 0 建立基线，避免重复建表
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
+    locations: classpath:db/migration
+    validate-on-migrate: true
 
 mybatis-plus:
   global-config:

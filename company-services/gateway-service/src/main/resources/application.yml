@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: gateway-service
+  profiles:
+    active: ${ENV:local}
+  main:
+    # 网关基于 WebFlux：即使 classpath 里混入 Servlet 相关类也必须以响应式方式启动
+    web-application-type: reactive
+  config:
+    import:
+      - optional:nacos:application.yaml?group=DEFAULT_GROUP&refreshEnabled=true
+      - optional:nacos:${spring.application.name}.yaml?group=${NACOS_GROUP:DEFAULT_GROUP}&refreshEnabled=true
+  cloud:
+    nacos:
+      server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+      username: ${NACOS_USERNAME:nacos}
+      password: ${NACOS_PASSWORD:nacos}
+      discovery:
+        namespace: ${NACOS_NS:}
+        group: ${NACOS_GROUP:DEFAULT_GROUP}
+      config:
+        namespace: ${NACOS_NS:}
+        group: ${NACOS_GROUP:DEFAULT_GROUP}
+        file-extension: yaml
+
+company:
+  auth:
+    jwt:
+      # 必须与 auth-service 使用同一个密钥（>= 32 字节），生产通过 JWT_SECRET 注入
+      secret: ${JWT_SECRET:company-local-dev-secret-key-change-me-32bytes}
+  gateway:
+    # 每 IP 每秒请求数上限，单机内存实现
+    rate-limit-per-second: ${GATEWAY_RATE_LIMIT:200}

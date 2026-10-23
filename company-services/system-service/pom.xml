@@ -23,6 +23,11 @@
             <groupId>com.company</groupId>
             <artifactId>system-api</artifactId>
         </dependency>
+        <!-- 定时任务统一由 Starter 提供调度线程池，业务侧只写 @Scheduled -->
+        <dependency>
+            <groupId>com.company</groupId>
+            <artifactId>company-job-starter</artifactId>
+        </dependency>
         <!-- 只用到 BCrypt，不引入 spring-boot-starter-security（否则会默认开启过滤器链） -->
         <dependency>
             <groupId>org.springframework.security</groupId>
