@@ -1,0 +1,9 @@
+server:
+  port: 8093
+  servlet:
+    context-path: /demo-03
+
+demo:
+  service:
+    title: 通知中心
+    storage: memory

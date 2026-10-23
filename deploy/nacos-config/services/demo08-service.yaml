@@ -1,0 +1,9 @@
+server:
+  port: 8098
+  servlet:
+    context-path: /demo-08
+
+demo:
+  service:
+    title: 物流中心
+    storage: memory

@@ -1,0 +1,36 @@
+# 架构守护：不同目录的变更必须由对应团队评审，配合 Enforcer / ArchUnit / 前端 check 脚本形成物理屏障
+# 语法：<路径模式> <@owner 或多个>
+
+# ===== 版本与构建基线（架构组）=====
+/company-bom/                @company/arch
+/company-parent/             @company/arch
+/pom.xml                     @company/arch
+
+# ===== 公共工具：零业务、零 Web 依赖（架构组）=====
+/company-common/             @company/arch
+
+# ===== Starter：中间件封装（基础组）=====
+/company-starters/           @company/platform
+
+# ===== 契约：变更影响所有调用方（架构组 + 业务线 TL 双签）=====
+/company-api/                @company/arch @company/domain-owners
+
+# ===== 业务服务：各自团队自治 =====
+/company-services/order-service/     @company/trade
+/company-services/user-service/      @company/identity
+/company-services/                   @company/arch
+
+# ===== 配置与部署：Config as Code，必须 SRE 评审 =====
+/deploy/nacos-config/        @company/sre @company/arch
+/deploy/docker/              @company/sre
+/deploy/k8s/                 @company/sre
+/deploy/db/                  @company/sre @company/dba
+
+# ===== 前端 =====
+/company-web/packages/          @company/frontend-platform
+/company-web/shell/             @company/frontend-platform
+/company-web/registry/          @company/frontend-platform
+/company-web/tools/             @company/frontend-platform
+/company-web/apps/trade/        @company/trade
+/company-web/apps/identity/     @company/identity
+/company-web/                   @company/frontend-platform

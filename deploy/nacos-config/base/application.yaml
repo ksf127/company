@@ -1,0 +1,57 @@
+# L0 全局兜底配置：所有服务共享。修改此文件 = 修改全部 100 个服务的默认行为。
+# Nacos: dataId=application.yaml, group=DEFAULT_GROUP, namespace=<env>
+spring:
+  main:
+    # 禁止 Bean 覆盖：同名 Bean 必须显式解决，避免 Starter 之间互相静默覆盖
+    allow-bean-definition-overriding: false
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: non_null
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  cloud:
+    openfeign:
+      # Spring Cloud 2022+ 的正确命名空间，顶层 feign.* 已失效
+      client:
+        config:
+          default:
+            connect-timeout: 3000
+            read-timeout: 5000
+      compression:
+        request:
+          enabled: true
+        response:
+          enabled: true
+
+server:
+  shutdown: graceful
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 20
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      # always 会把 DB/Redis 地址、磁盘路径暴露给任何能访问 actuator 的人
+      show-details: when-authorized
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  tracing:
+    sampling:
+      probability: ${TRACE_SAMPLE_RATE:0.1}
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [traceId=%X{traceId:-}] - %msg%n"
+  level:
+    root: INFO
+    com.company: INFO

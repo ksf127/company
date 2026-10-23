@@ -1,0 +1,9 @@
+server:
+  port: 8094
+  servlet:
+    context-path: /demo-04
+
+demo:
+  service:
+    title: 文件中心
+    storage: memory

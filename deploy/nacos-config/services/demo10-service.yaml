@@ -1,0 +1,9 @@
+server:
+  port: 8100
+  servlet:
+    context-path: /demo-10
+
+demo:
+  service:
+    title: 审计中心
+    storage: memory

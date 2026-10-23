@@ -1,0 +1,21 @@
+{
+  "name": "@company/app-user",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5002 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5002 --strictPort"
+  },
+  "dependencies": {
+    "@company/contracts": "*",
+    "@company/sdk": "*",
+    "@company/ui": "*",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@company/build-config": "*"
+  }
+}

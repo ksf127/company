@@ -1,0 +1,201 @@
+{
+  "version": 1,
+  "note": "运行时应用清单：新增微前端只需在这里追加一条，shell 不需要重新构建",
+  "apps": [
+    {
+      "id": "order",
+      "name": "订单中心",
+      "remoteName": "orderApp",
+      "entry": "http://localhost:5001/remoteEntry.js",
+      "route": "/trade/order",
+      "nav": {
+        "group": "交易",
+        "order": 10
+      },
+      "permissions": [
+        "order:read"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "user",
+      "name": "用户中心",
+      "remoteName": "userApp",
+      "entry": "http://localhost:5002/remoteEntry.js",
+      "route": "/identity/user",
+      "nav": {
+        "group": "身份",
+        "order": 20
+      },
+      "permissions": [
+        "user:read"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "admin",
+      "name": "系统管理",
+      "remoteName": "systemApp",
+      "entry": "http://localhost:5003/remoteEntry.js",
+      "route": "/system",
+      "nav": {
+        "group": "系统",
+        "order": 5
+      },
+      "permissions": [
+        "system:user:list"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "demo01",
+      "name": "支付中心",
+      "remoteName": "demo01App",
+      "entry": "http://localhost:5011/remoteEntry.js",
+      "route": "/demo01",
+      "nav": {
+        "group": "实验室",
+        "order": 110
+      },
+      "permissions": [
+        "demo01:read"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "demo02",
+      "name": "库存中心",
+      "remoteName": "demo02App",
+      "entry": "http://localhost:5012/remoteEntry.js",
+      "route": "/demo02",
+      "nav": {
+        "group": "实验室",
+        "order": 120
+      },
+      "permissions": [
+        "demo02:read"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "demo03",
+      "name": "通知中心",
+      "remoteName": "demo03App",
+      "entry": "http://localhost:5013/remoteEntry.js",
+      "route": "/demo03",
+      "nav": {
+        "group": "实验室",
+        "order": 130
+      },
+      "permissions": [
+        "demo03:read"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "demo04",
+      "name": "文件中心",
+      "remoteName": "demo04App",
+      "entry": "http://localhost:5014/remoteEntry.js",
+      "route": "/demo04",
+      "nav": {
+        "group": "实验室",
+        "order": 140
+      },
+      "permissions": [
+        "demo04:read"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "demo05",
+      "name": "搜索中心",
+      "remoteName": "demo05App",
+      "entry": "http://localhost:5015/remoteEntry.js",
+      "route": "/demo05",
+      "nav": {
+        "group": "实验室",
+        "order": 150
+      },
+      "permissions": [
+        "demo05:read"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "demo06",
+      "name": "报表中心",
+      "remoteName": "demo06App",
+      "entry": "http://localhost:5016/remoteEntry.js",
+      "route": "/demo06",
+      "nav": {
+        "group": "实验室",
+        "order": 160
+      },
+      "permissions": [
+        "demo06:read"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "demo07",
+      "name": "优惠券中心",
+      "remoteName": "demo07App",
+      "entry": "http://localhost:5017/remoteEntry.js",
+      "route": "/demo07",
+      "nav": {
+        "group": "实验室",
+        "order": 170
+      },
+      "permissions": [
+        "demo07:read"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "demo08",
+      "name": "物流中心",
+      "remoteName": "demo08App",
+      "entry": "http://localhost:5018/remoteEntry.js",
+      "route": "/demo08",
+      "nav": {
+        "group": "实验室",
+        "order": 180
+      },
+      "permissions": [
+        "demo08:read"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "demo09",
+      "name": "评价中心",
+      "remoteName": "demo09App",
+      "entry": "http://localhost:5019/remoteEntry.js",
+      "route": "/demo09",
+      "nav": {
+        "group": "实验室",
+        "order": 190
+      },
+      "permissions": [
+        "demo09:read"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "demo10",
+      "name": "审计中心",
+      "remoteName": "demo10App",
+      "entry": "http://localhost:5020/remoteEntry.js",
+      "route": "/demo10",
+      "nav": {
+        "group": "实验室",
+        "order": 200
+      },
+      "permissions": [
+        "demo10:read"
+      ],
+      "enabled": true
+    }
+  ]
+}

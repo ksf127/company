@@ -1,0 +1,28 @@
+# L2 order-service 专属配置：支持热更新，只影响本服务。
+# Nacos: dataId=order-service.yaml, group=DEFAULT_GROUP
+server:
+  port: 8083
+
+order:
+  create:
+    limit-per-second: 100
+    enable-risk-check: true
+  payment:
+    timeout-minutes: 30
+    supported-channels: [ALIPAY, WECHAT, UNIONPAY]
+
+spring:
+  cloud:
+    openfeign:
+      client:
+        config:
+          # 只覆盖对 user-service 的调用，其余仍用 L0 的 3s/5s
+          user-service:
+            connect-timeout: 2000
+            read-timeout: 10000
+  data:
+    redis:
+      lettuce:
+        pool:
+          max-active: 64
+          max-idle: 32

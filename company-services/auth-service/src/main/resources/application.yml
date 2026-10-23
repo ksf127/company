@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: auth-service
+  profiles:
+    active: ${ENV:local}
+  config:
+    import:
+      - optional:nacos:application.yaml?group=DEFAULT_GROUP&refreshEnabled=true
+      - optional:nacos:${spring.application.name}.yaml?group=${NACOS_GROUP:DEFAULT_GROUP}&refreshEnabled=true
+  cloud:
+    nacos:
+      server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+      username: ${NACOS_USERNAME:nacos}
+      password: ${NACOS_PASSWORD:nacos}
+      discovery:
+        namespace: ${NACOS_NS:}
+        group: ${NACOS_GROUP:DEFAULT_GROUP}
+      config:
+        namespace: ${NACOS_NS:}
+        group: ${NACOS_GROUP:DEFAULT_GROUP}
+        file-extension: yaml
+
+company:
+  auth:
+    jwt:
+      # 本地默认值仅供开发；生产必须通过 JWT_SECRET 注入（>= 32 字节）
+      secret: ${JWT_SECRET:company-local-dev-secret-key-change-me-32bytes}
+      expire-minutes: ${JWT_EXPIRE_MINUTES:120}

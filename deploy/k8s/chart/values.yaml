@@ -1,0 +1,31 @@
+replicaCount: 2
+
+image:
+  repository: ""
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+containerPort: 8080
+
+javaOpts: "-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError -XX:+UseG1GC"
+
+# 所有服务必须通过这些环境变量接收环境差异，镜像本身与环境无关
+env:
+  NACOS_ADDR: "nacos:8848"
+  NACOS_NS: "prod"
+  NACOS_GROUP: "DEFAULT_GROUP"
+  ENV: "prod"
+
+# 数据库密码、外部凭证一律来自 Secret
+secretName: ""
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
+
+service:
+  port: 80

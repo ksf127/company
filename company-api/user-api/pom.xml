@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.company</groupId>
+        <artifactId>company-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../../company-parent/pom.xml</relativePath>
+    </parent>
+
+    <artifactId>user-api</artifactId>
+    <name>user-api</name>
+
+    <dependencies>
+        <!-- 只依赖注解与 Feign 接口，optional 不传染给调用方的运行时 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-openfeign-core</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.company</groupId>
+            <artifactId>company-common-core</artifactId>
+        </dependency>
+    </dependencies>
+</project>

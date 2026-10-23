@@ -1,0 +1,15 @@
+image:
+  repository: registry.company.com/system-service
+  tag: "1.0.0"
+
+env:
+  NACOS_ADDR: "nacos.infra:8848"
+  NACOS_NS: "prod"
+  NACOS_GROUP: "DEFAULT_GROUP"
+  ENV: "prod"
+  SYSTEM_DB_URL: "jdbc:mysql://mysql.infra:3306/system_db?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8"
+  SYSTEM_DB_USER: "app"
+
+# SYSTEM_DB_PASSWORD 等敏感值由 Secret 注入
+secretName: system-db-secret
+replicaCount: 2

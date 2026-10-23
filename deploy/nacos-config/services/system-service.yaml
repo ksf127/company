@@ -1,0 +1,16 @@
+# L2 system-service 专属配置：若依基础模块独立库 system_db。
+# Nacos: dataId=system-service.yaml, group=DEFAULT_GROUP
+server:
+  port: 8082
+
+spring:
+  datasource:
+    url: ${SYSTEM_DB_URL:jdbc:mysql://127.0.0.1:3306/system_db?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8}
+    username: ${SYSTEM_DB_USER:app}
+    password: ${SYSTEM_DB_PASSWORD:}
+    hikari:
+      # 系统管理是低频后台流量，池子保持小；撑住突发的是副本数而不是线程
+      maximum-pool-size: 15
+
+# 注意：不设置 mybatis-plus.global-config.db-config.table-prefix，
+# sys_* 表名自带前缀；t_ 前缀只属于 user-service 的 L2 配置。

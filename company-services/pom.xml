@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.company</groupId>
+        <artifactId>company-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../company-parent/pom.xml</relativePath>
+    </parent>
+
+    <artifactId>services</artifactId>
+    <packaging>pom</packaging>
+    <name>services</name>
+
+    <modules>
+        <module>auth-service</module>
+        <module>system-service</module>
+        <module>order-service</module>
+        <module>user-service</module>
+        <module>demo01-service</module>
+        <module>demo02-service</module>
+        <module>demo03-service</module>
+        <module>demo04-service</module>
+        <module>demo05-service</module>
+        <module>demo06-service</module>
+        <module>demo07-service</module>
+        <module>demo08-service</module>
+        <module>demo09-service</module>
+        <module>demo10-service</module>
+    </modules>
+
+    <!--
+      所有服务共享的最小集合：注册中心、配置中心、Web、校验、可观测性。
+      业务模块不再重复声明这些依赖，也不允许决定它们的版本。
+    -->
+    <dependencies>
+        <dependency>
+            <groupId>com.company</groupId>
+            <artifactId>company-common-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+
+        <!-- 架构约束测试，所有服务默认具备 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- 只检查直接依赖：Starter 内部的传递依赖不受影响 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>ban-direct-middleware-deps</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <bannedDependencies>
+                                    <searchTransitive>false</searchTransitive>
+                                    <excludes>
+                                        <exclude>org.springframework.boot:spring-boot-starter-data-redis</exclude>
+                                        <exclude>redis.clients:jedis</exclude>
+                                        <exclude>com.mysql:mysql-connector-j</exclude>
+                                        <exclude>com.baomidou:mybatis-plus-spring-boot3-starter</exclude>
+                                    </excludes>
+                                    <message>业务服务只能通过 company-*-starter 访问中间件，禁止直接引入客户端/驱动。</message>
+                                </bannedDependencies>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

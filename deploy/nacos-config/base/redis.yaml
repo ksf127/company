@@ -1,0 +1,24 @@
+# L1 中间件共享配置：所有引入 company-redis-starter 的服务自动继承。
+# Nacos: dataId=redis.yaml, group=DEFAULT_GROUP
+# 注意：Spring Boot 3 的命名空间是 spring.data.redis，写成 spring.redis 会被静默忽略。
+spring:
+  data:
+    redis:
+      cluster:
+        nodes: ${REDIS_NODES:redis-node1:6379,redis-node2:6379,redis-node3:6379}
+        max-redirects: 3
+      password: ${REDIS_PASSWORD:}
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 32
+          max-idle: 16
+          min-idle: 8
+          max-wait: 3000ms
+
+# company-redis-starter 的扩展配置
+company:
+  redis:
+    key-prefix: "biz:"
+    cache-null: true
+    cache-null-ttl: 60s

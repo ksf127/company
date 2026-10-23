@@ -1,0 +1,6 @@
+apiVersion: v2
+name: company-service
+description: 所有业务服务共用的 Helm Chart，服务差异只体现在 values 文件
+type: application
+version: 1.0.0
+appVersion: "1.0.0"

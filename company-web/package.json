@@ -1,0 +1,32 @@
+{
+  "name": "company-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "packages/*",
+    "shell",
+    "apps/*/*"
+  ],
+  "scripts": {
+    "dev": "node tools/dev.mjs",
+    "dev:shell": "npm run dev -w @company/shell",
+    "build": "node tools/build.mjs",
+    "check": "node tools/check-architecture.mjs",
+    "typecheck": "node tools/typecheck.mjs",
+    "create": "node tools/create-app.mjs",
+    "affected": "node tools/affected.mjs"
+  },
+  "devDependencies": {
+    "@module-federation/vite": "1.23.5",
+    "@types/node": "^22.20.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "5.2.0",
+    "typescript": "5.9.3",
+    "vite": "7.3.7"
+  }
+}

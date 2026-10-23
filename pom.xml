@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.company</groupId>
+    <artifactId>company-microservices</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>company-microservices</name>
+
+    <!--
+      根 POM 只做聚合：不写 dependencyManagement、不写 pluginManagement。
+      版本策略在 company-bom，构建约束在 company-parent。
+      新增服务只能加在 company-services/ 下。
+    -->
+    <modules>
+        <module>company-bom</module>
+        <module>company-parent</module>
+        <module>company-common</module>
+        <module>company-starters</module>
+        <module>company-api</module>
+        <module>company-services</module>
+    </modules>
+</project>

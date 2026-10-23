@@ -1,0 +1,11 @@
+image:
+  repository: registry.company.com/order-service
+  tag: "1.0.0"
+
+env:
+  NACOS_ADDR: "nacos.infra:8848"
+  NACOS_NS: "prod"
+  NACOS_GROUP: "DEFAULT_GROUP"
+  ENV: "prod"
+
+replicaCount: 4

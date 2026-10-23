@@ -1,0 +1,9 @@
+server:
+  port: 8096
+  servlet:
+    context-path: /demo-06
+
+demo:
+  service:
+    title: 报表中心
+    storage: memory

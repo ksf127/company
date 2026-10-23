@@ -1,0 +1,21 @@
+# L2 auth-service 专属配置：认证中心无状态、不落库，只依赖 system-service。
+# Nacos: dataId=auth-service.yaml, group=DEFAULT_GROUP
+server:
+  # 由网关对外暴露，内部只监听服务端口
+  port: 8081
+
+spring:
+  cloud:
+    openfeign:
+      client:
+        config:
+          system-service:
+            connect-timeout: 2000
+            read-timeout: 3000
+
+company:
+  auth:
+    jwt:
+      # 生产环境必须通过 K8s Secret 注入 JWT_SECRET，禁止把真实密钥写进配置中心
+      secret: ${JWT_SECRET:company-local-dev-secret-key-change-me-32bytes}
+      expire-minutes: 120

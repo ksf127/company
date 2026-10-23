@@ -1,0 +1,9 @@
+server:
+  port: 8097
+  servlet:
+    context-path: /demo-07
+
+demo:
+  service:
+    title: 优惠券中心
+    storage: memory

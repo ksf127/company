@@ -1,0 +1,28 @@
+# 构建产物
+target/
+dist/
+.m2repo/
+*.jar
+*.war
+
+# 前端依赖
+node_modules/
+.vite/
+
+# 本地环境与密钥
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# IDE / 系统
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# 日志
+*.log
+logs/

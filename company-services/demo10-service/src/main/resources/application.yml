@@ -1,0 +1,24 @@
+server:
+  port: 8100
+  servlet:
+    context-path: /demo-10
+
+spring:
+  application:
+    name: demo10-service
+  config:
+    import:
+      - optional:nacos:application.yaml?group=DEFAULT_GROUP&refreshEnabled=true
+      - optional:nacos:demo10-service.yaml?group=${NACOS_GROUP:DEFAULT_GROUP}&refreshEnabled=true
+  cloud:
+    nacos:
+      server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+      username: ${NACOS_USERNAME:nacos}
+      password: ${NACOS_PASSWORD:nacos}
+      discovery:
+        namespace: ${NACOS_NS:}
+        group: ${NACOS_GROUP:DEFAULT_GROUP}
+      config:
+        namespace: ${NACOS_NS:}
+        group: ${NACOS_GROUP:DEFAULT_GROUP}
+        file-extension: yaml

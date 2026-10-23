@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: order-service
+  profiles:
+    active: ${ENV:local}
+  config:
+    # L3 只做"寻址"：告诉应用去 Nacos 取哪些配置，业务参数一律不写在这里
+    import:
+      - optional:nacos:application.yaml?group=DEFAULT_GROUP&refreshEnabled=true
+      - optional:nacos:redis.yaml?group=DEFAULT_GROUP&refreshEnabled=true
+      - optional:nacos:mysql.yaml?group=DEFAULT_GROUP&refreshEnabled=true
+      - optional:nacos:${spring.application.name}.yaml?group=${NACOS_GROUP:DEFAULT_GROUP}&refreshEnabled=true
+  cloud:
+    nacos:
+      server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+      username: ${NACOS_USERNAME:nacos}
+      password: ${NACOS_PASSWORD:nacos}
+      discovery:
+        namespace: ${NACOS_NS:}
+        group: ${NACOS_GROUP:DEFAULT_GROUP}
+      config:
+        namespace: ${NACOS_NS:}
+        group: ${NACOS_GROUP:DEFAULT_GROUP}
+        file-extension: yaml

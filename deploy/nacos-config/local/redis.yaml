@@ -1,0 +1,14 @@
+# 本地开发环境的 L1 覆盖：单机 Redis，覆盖 base/redis.yaml 的集群配置。
+# 发布到 namespace=<你的名字或 local>，生产 namespace 不受影响。
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 2
